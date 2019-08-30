@@ -40,13 +40,16 @@ public class Bot extends TelegramLongPollingBot {
         sendMessage.setText(text);
 
         try {
+            setButtons(sendMessage);
             sendMessage(sendMessage);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }
 
+    @Override
     public void onUpdateReceived(Update update) {
+        Model model = new Model();
         Message message = update.getMessage();
         if (message != null && message.hasText()) {
             switch (message.getText()) {
@@ -56,16 +59,42 @@ public class Bot extends TelegramLongPollingBot {
                 case "/settings":
                     sendMsg(message, "Що будемо налаштовувати?");
                     break;
+                case "Kyiv":
+                    try {
+                        sendMsg(message, Weather.getWeather(message.getText(), model));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 default: sendMsg(message, "а пашол ты, а пашол ты");
             }
+            message.getContact().getUserID();
         }
     }
 
+    @Override
     public String getBotUsername() {
         return botName;
     }
 
+    @Override
     public String getBotToken() {
         return botToken;
+    }
+
+    public void setButtons(SendMessage sendMessage) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
+        KeyboardRow keyboardButtonsFirstRow = new KeyboardRow();
+
+        keyboardButtonsFirstRow.add(new KeyboardButton("/help"));
+        keyboardButtonsFirstRow.add(new KeyboardButton("/settings"));
+
+        keyboardRows.add(keyboardButtonsFirstRow);
+        replyKeyboardMarkup.setKeyboard(keyboardRows);
     }
 }
